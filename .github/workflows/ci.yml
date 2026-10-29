@@ -9,8 +9,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test Corporate Application
+  test-and-build:
+    name: Test and Build Application
     runs-on: ubuntu-latest
 
     steps:
@@ -29,3 +29,6 @@ jobs:
 
       - name: Run automated tests
         run: python -m pytest -v
+
+      - name: Build Docker image
+        run: docker build -t corporate-cloud-pipeline:latest .
