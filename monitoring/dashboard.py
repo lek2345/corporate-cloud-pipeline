@@ -4,17 +4,122 @@ import requests
 import time
 from datetime import datetime
 
+# ---------------- CONFIGURATION ----------------
+
 APP_URL = "https://corporate-cloud-pipeline.onrender.com"
 HEALTH_URL = f"{APP_URL}/health"
 
 st.set_page_config(
-    page_title="Corporate Cloud Monitoring",
+    page_title="Corporate Cloud Control Center",
     page_icon="☁️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-st.title("☁️ Corporate Cloud Monitoring Dashboard")
-st.caption("Live monitoring of your deployed Flask application")
+# ---------------- CUSTOM DESIGN ----------------
+
+st.markdown("""
+<style>
+.stApp {
+    background: #0B1120;
+    color: #F8FAFC;
+}
+
+header[data-testid="stHeader"] {
+    background: transparent;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1400px;
+}
+
+h1, h2, h3, p, label {
+    color: #F8FAFC;
+}
+
+[data-testid="stSidebar"] {
+    background: #111827;
+}
+
+[data-testid="stMetric"] {
+    background: linear-gradient(135deg, #1E293B, #172554);
+    border: 1px solid #334155;
+    padding: 20px;
+    border-radius: 14px;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #94A3B8;
+}
+
+[data-testid="stMetricValue"] {
+    color: #F8FAFC;
+}
+
+div.stButton > button {
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+}
+
+div.stButton > button:hover {
+    background: #1D4ED8;
+    color: white;
+}
+
+hr {
+    border-color: #334155;
+}
+
+[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------- HEADER ----------------
+
+st.markdown("""
+# ☁️ CORPORATE CLOUD CONTROL CENTER
+
+### Infrastructure Monitoring & Application Health
+
+Monitor your deployed Flask application through your cloud dashboard.
+""")
+
+st.divider()
+
+# ---------------- SIDEBAR ----------------
+
+with st.sidebar:
+    st.markdown("## ☁️ CLOUD CONTROL")
+    st.caption("DevOps Monitoring Platform")
+
+    st.divider()
+
+    st.markdown("### Navigation")
+    st.markdown("🟢 Application Overview")
+    st.markdown("📊 Performance Analytics")
+    st.markdown("🛡️ Service Health")
+    st.markdown("⚙️ Configuration")
+
+    st.divider()
+
+    st.markdown("### Deployment")
+    st.caption("Hosting Platform: Render")
+    st.caption("Application: Flask")
+    st.caption("Dashboard: Streamlit")
+
+    st.divider()
+
+    st.markdown("**Monitoring interval**")
+    st.caption("Automatic check every 30 seconds")
+
+# ---------------- MONITORING ----------------
 
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -25,85 +130,110 @@ def monitoring_panel():
     start_time = time.perf_counter()
 
     try:
-        response = requests.get(HEALTH_URL, timeout=60)
+        response = requests.get(
+            HEALTH_URL,
+            timeout=60
+        )
+
         response_time = round(
             (time.perf_counter() - start_time) * 1000, 2
         )
 
-        success = response.status_code == 200
+        http_code = response.status_code
+        success = (
+            response.status_code == 200
+            and response.json().get("status") == "healthy"
+        )
 
         if success:
-            status = "Online"
-            health = response.json().get("status", "Unknown")
+            status = "ONLINE"
+            health = "HEALTHY"
         else:
-            status = "Error"
-            health = "Unhealthy"
-
-        http_code = response.status_code
+            status = "ERROR"
+            health = "UNHEALTHY"
 
     except requests.RequestException:
         response_time = None
-        status = "Offline"
-        health = "Unavailable"
         http_code = "N/A"
         success = False
+        status = "OFFLINE"
+        health = "UNAVAILABLE"
 
-    checked_at = datetime.now().strftime("%H:%M:%S")
+    checked_at = datetime.now().strftime(
+        "%d-%m-%Y %H:%M:%S"
+    )
 
     st.session_state.history.append({
-        "Time": checked_at,
+        "Time": datetime.now().strftime("%H:%M:%S"),
         "Response Time (ms)": response_time,
         "Successful": success
     })
 
-    # Keep the latest 50 health checks
-    st.session_state.history = st.session_state.history[-50:]
+    st.session_state.history = (
+        st.session_state.history[-50:]
+    )
 
     history = st.session_state.history
 
-    total_checks = len(history)
-    successful_checks = sum(
-        item["Successful"] for item in history
-    )
-    failed_checks = total_checks - successful_checks
+    total = len(history)
+    passed = sum(item["Successful"] for item in history)
+    failed = total - passed
 
-    uptime = (
-        successful_checks / total_checks * 100
-        if total_checks else 0
-    )
+    uptime = (passed / total * 100) if total else 0
 
-    st.subheader("Application Overview")
+    # ---------------- STATUS BANNER ----------------
 
-    col1, col2, col3, col4 = st.columns(4)
+    if success:
+        st.success("● ALL SYSTEMS OPERATIONAL")
+    else:
+        st.error("● APPLICATION HEALTH CHECK FAILED")
 
-    col1.metric("Application Status", status)
-    col2.metric("Health Check", health)
-    col3.metric("HTTP Status", str(http_code))
-    col4.metric(
-        "Response Time",
-        f"{response_time:.2f} ms"
-        if response_time is not None else "N/A"
-    )
+    st.markdown("## 📊 Application Overview")
+
+    # ---------------- KPI CARDS ----------------
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric("Application Status", status)
+
+    with c2:
+        st.metric("Health Check", health)
+
+    with c3:
+        st.metric("HTTP Status", str(http_code))
+
+    with c4:
+        st.metric(
+            "Response Time",
+            f"{response_time:.2f} ms"
+            if response_time is not None else "N/A"
+        )
 
     st.divider()
 
-    st.subheader("Monitoring Statistics")
+    # ---------------- MONITORING STATISTICS ----------------
 
-    col1, col2, col3 = st.columns(3)
+    st.markdown("## 📈 Monitoring Statistics")
 
-    col1.metric("Total Checks", total_checks)
-    col2.metric("Successful Checks", successful_checks)
-    col3.metric("Failed Checks", failed_checks)
+    a, b, c = st.columns(3)
+
+    a.metric("Total Health Checks", total)
+    b.metric("Successful Checks", passed)
+    c.metric("Failed Checks", failed)
 
     st.metric("Observed Uptime", f"{uptime:.2f}%")
 
     st.caption(
-        "Uptime is calculated from checks collected during this dashboard session."
+        "Uptime is based on checks collected during this dashboard session."
     )
 
     st.divider()
 
-    st.subheader("Response Time History")
+    # ---------------- PERFORMANCE GRAPH ----------------
+
+    st.markdown("## ⚡ Performance Analytics")
+    st.markdown("### Response Time History")
 
     chart_data = [
         item for item in history
@@ -114,24 +244,49 @@ def monitoring_panel():
         st.line_chart(
             chart_data,
             x="Time",
-            y="Response Time (ms)"
+            y="Response Time (ms)",
+            color="#38BDF8"
         )
     else:
-        st.info("No response-time measurements available yet.")
+        st.info("Waiting for response-time measurements.")
 
     st.divider()
 
-    st.subheader("Application Details")
+    # ---------------- SERVICE DETAILS ----------------
 
-    st.write("Application URL:", APP_URL)
-    st.write("Health Endpoint:", HEALTH_URL)
-    st.write("Last Checked:", checked_at)
+    st.markdown("## 🛡️ Service Health")
 
-    if success:
-        st.success("Your cloud application is healthy!")
-    else:
-        st.error("Application health check failed.")
+    left, right = st.columns(2)
 
-    st.caption("Next automatic check in approximately 30 seconds.")
+    with left:
+        st.markdown("### Flask Application")
+        st.write("**Platform:** Render Cloud")
+        st.write("**Framework:** Flask")
+        st.write("**Service:** Corporate Cloud Pipeline")
+        st.write("**Status:**", status)
+
+        st.markdown(
+            "[Open Application](https://corporate-cloud-pipeline.onrender.com)"
+        )
+
+    with right:
+        st.markdown("### Health Endpoint")
+        st.write("**Endpoint:** `/health`")
+        st.write("**HTTP Code:**", http_code)
+        st.write("**Health:**", health)
+        st.write("**Last Checked:**", checked_at)
+
+        st.markdown(
+            "[Test Health Endpoint](https://corporate-cloud-pipeline.onrender.com/health)"
+        )
+
+    st.divider()
+
+    st.caption(
+        "Corporate Cloud Deployment Pipeline | "
+        "DevOps & CI/CD Monitoring | 2026"
+    )
+
+# ---------------- RUN DASHBOARD ----------------
 
 monitoring_panel()
