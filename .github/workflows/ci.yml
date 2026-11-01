@@ -93,7 +93,7 @@ jobs:
                 "docker build -t corporate-cloud-app .",
                 "docker rm -f corporate-cloud-container || true",
                 "docker run -d --restart unless-stopped --name corporate-cloud-container -p 80:5000 corporate-cloud-app",
-                "curl -fsS http://localhost/health"
+                "for i in $(seq 1 10); do if curl -fsS http://localhost/health; then echo 'Application is healthy'; exit 0; fi; echo 'Waiting for application...'; sleep 5; done; echo 'Health check failed'; exit 1"
               ]
             }
           }
