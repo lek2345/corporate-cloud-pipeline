@@ -32,3 +32,54 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t corporate-cloud-pipeline:latest .
+
+  deploy-to-aws:
+    name: Deploy Application to AWS EC2
+    needs: test-and-build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Deploy application using AWS Systems Manager
+        shell: bash
+        run: |
+          cat > command.json <<'JSON'
+          {
+            "DocumentName": "AWS-RunShellScript",
+            "InstanceIds": ["i-0a81998f157000344"],
+            "Parameters": {
+              "commands": [
+                "set -e",
+                "sudo -u ubuntu git -C /home/ubuntu/corporate-cloud-pipeline pull origin main",
+                "cd /home/ubuntu/corporate-cloud-pipeline",
+                "docker build -t corporate-cloud-app .",
+                "docker rm -f corporate-cloud-container || true",
+                "docker run -d --restart unless-stopped --name corporate-cloud-container -p 80:5000 corporate-cloud-app",
+                "curl -fsS http://localhost/health"
+              ]
+            }
+          }
+          JSON
+
+          COMMAND_ID=$(aws ssm send-command \
+            --cli-input-json file://command.json \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "Deployment command ID: $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "i-0a81998f157000344"
+
+          echo "AWS deployment completed successfully!"
