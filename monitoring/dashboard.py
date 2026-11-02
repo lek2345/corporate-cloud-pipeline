@@ -276,9 +276,9 @@ def monitoring_panel():
         st.write("**Health:**", health)
         st.write("**Last Checked:**", checked_at)
 
-       st.markdown(
+        st.markdown(
            f"[Test Health Endpoint]({HEALTH_URL})"
-       )
+        )
 
     st.divider()
 
