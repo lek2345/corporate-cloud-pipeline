@@ -6,7 +6,7 @@ from datetime import datetime
 
 # ---------------- CONFIGURATION ----------------
 
-APP_URL = "https://corporate-cloud-pipeline.onrender.com"
+APP_URL = "http://18.215.147.230"
 HEALTH_URL = f"{APP_URL}/health"
 
 st.set_page_config(
@@ -110,7 +110,7 @@ with st.sidebar:
     st.divider()
 
     st.markdown("### Deployment")
-    st.caption("Hosting Platform: Render")
+    st.caption("Hosting Platform: AWS EC2")
     st.caption("Application: Flask")
     st.caption("Dashboard: Streamlit")
 
@@ -260,13 +260,13 @@ def monitoring_panel():
 
     with left:
         st.markdown("### Flask Application")
-        st.write("**Platform:** Render Cloud")
+        st.write("**Platform:** AWS EC2")
         st.write("**Framework:** Flask")
         st.write("**Service:** Corporate Cloud Pipeline")
         st.write("**Status:**", status)
 
         st.markdown(
-            "[Open Application](https://corporate-cloud-pipeline.onrender.com)"
+            f"[Open Application]({APP_URL})"
         )
 
     with right:
@@ -276,9 +276,9 @@ def monitoring_panel():
         st.write("**Health:**", health)
         st.write("**Last Checked:**", checked_at)
 
-        st.markdown(
-            "[Test Health Endpoint](https://corporate-cloud-pipeline.onrender.com/health)"
-        )
+       st.markdown(
+           f"[Test Health Endpoint]({HEALTH_URL})"
+       )
 
     st.divider()
 
