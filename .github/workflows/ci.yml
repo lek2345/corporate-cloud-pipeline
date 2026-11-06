@@ -44,7 +44,6 @@ jobs:
       contents: read
 
     steps:
-    
       - name: Diagnose GitHub OIDC claims
         env:
           ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
@@ -77,6 +76,18 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify AWS account and EC2 instance
+        run: |
+          echo "Checking AWS account..."
+          aws sts get-caller-identity
+
+          echo "Checking EC2 instance..."
+          aws ec2 describe-instances \
+            --instance-ids i-0a81998f157000344 \
+            --region us-east-1 \
+            --query 'Reservations[].Instances[].{ID:InstanceId,State:State.Name}' \
+            --output table
 
       - name: Deploy application using AWS Systems Manager
         shell: bash
