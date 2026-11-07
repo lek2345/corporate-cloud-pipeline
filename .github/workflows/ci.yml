@@ -89,6 +89,12 @@ jobs:
             --query 'Reservations[].Instances[].{ID:InstanceId,State:State.Name}' \
             --output table
 
+          echo "Checking Systems Manager connection..."
+          aws ssm describe-instance-information \
+            --filters "Key=InstanceIds,Values=i-0a81998f157000344" \
+            --region us-east-1 \
+            --output table
+
       - name: Deploy application using AWS Systems Manager
         shell: bash
         run: |
