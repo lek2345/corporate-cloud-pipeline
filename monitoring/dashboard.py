@@ -10,7 +10,7 @@ import streamlit as st
 
 # -------------------- CONFIGURATION --------------------
 
-APP_URL = "http://18.215.147.230"
+APP_URL = "http://100.31.99.241"
 HEALTH_URL = f"{APP_URL}/health"
 
 REFRESH_INTERVAL = 30
