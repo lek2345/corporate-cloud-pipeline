@@ -308,6 +308,21 @@ if "last_checked" not in st.session_state:
 
 # -------------------- SIDEBAR --------------------
 
+
+# -------------------- SESSION STATE --------------------
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+if "last_error" not in st.session_state:
+    st.session_state.last_error = None
+
+if "last_checked" not in st.session_state:
+    st.session_state.last_checked = "Not checked yet"
+
+
+# -------------------- NEXUS SIDEBAR --------------------
+
 with st.sidebar:
 
     st.markdown("## 🟢 NEXUS")
@@ -333,7 +348,7 @@ with st.sidebar:
     st.markdown("### DEPLOYMENT PROFILE")
 
     st.caption("CLOUD PLATFORM")
-    st.markdown("**Render Cloud**")
+    st.markdown("**AWS EC2**")
 
     st.caption("BACKEND FRAMEWORK")
     st.markdown("**Python Flask**")
@@ -361,7 +376,7 @@ with st.sidebar:
 
     st.markdown("### ENVIRONMENT")
     st.markdown("🟢 Production endpoint")
-    st.caption("HTTPS connection")
+    st.caption("HTTP connection")
     st.caption("NEXUS CLOUDOPS v3.0")
 
 
@@ -386,6 +401,7 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
 
 
 # -------------------- MONITORING ENGINE --------------------
@@ -509,7 +525,6 @@ def monitoring_engine():
     left, right = st.columns([5, 1])
 
     with left:
-<<<<<<< HEAD
         st.markdown("### Flask Application")
         st.write("**Platform:** AWS EC2")
         st.write("**Framework:** Flask")
@@ -518,14 +533,12 @@ def monitoring_engine():
 
         st.markdown(
             f"[Open Application]({APP_URL})"
-=======
+        )
 
         st.markdown(
             f"**LAST SYSTEM CHECK:** "
             f"{st.session_state.last_checked}"
->>>>>>> 0816ab0 (Fix monitoring dashboard errors and UI)
         )
-
     with right:
 
         if st.button(
@@ -537,15 +550,15 @@ def monitoring_engine():
     if success:
 
         st.markdown(
-<<<<<<< HEAD
-           f"[Test Health Endpoint]({HEALTH_URL})"
-=======
+            f"[Test Health Endpoint]({HEALTH_URL})"
+        )
+
+        st.markdown(
             '<div class="status-line">'
             '🟢 SYSTEM OPERATIONAL — '
             'Application health verification successful'
             '</div>',
             unsafe_allow_html=True
->>>>>>> 0816ab0 (Fix monitoring dashboard errors and UI)
         )
 
     else:
@@ -617,7 +630,7 @@ def monitoring_engine():
                 <div class="info-content">
                     <b>Application:</b> Corporate Cloud Pipeline<br>
                     <b>Framework:</b> Python Flask<br>
-                    <b>Cloud Hosting:</b> Render<br>
+                    <b>Cloud Hosting:</b> AWS EC2<br>
                     <b>Protocol:</b> HTTPS<br>
                     <b>Service:</b> Production Application
                 </div>
@@ -876,7 +889,7 @@ def monitoring_engine():
                     ☁️ DEPLOYMENT CONFIGURATION
                 </div>
                 <div class="info-content">
-                    <b>Cloud Platform:</b> Render<br>
+                    <b>Cloud Platform:</b> AWS EC<br>
                     <b>Backend:</b> Python Flask<br>
                     <b>Dashboard:</b> Streamlit<br>
                     <b>CI/CD:</b> GitHub Actions<br>
